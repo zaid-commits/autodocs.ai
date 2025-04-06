@@ -21,8 +21,8 @@ Be part of a global effort to redefine software documentation. Start contributin
 
 ## Stay Connected
 Collaborate and engage with our community:
-- Join discussions on [GitHub Discussions](https://github.com/yourusername/autodocs.ai/discussions).
-- Report issues or propose features via [GitHub Issues](https://github.com/yourusername/autodocs.ai/issues).
+- Join discussions on [GitHub Discussions](https://github.com/zaid-commits/autodocs.ai/discussions).
+- Report issues or propose features via [GitHub Issues](https://github.com/zaid-commits/autodocs.ai/issues).
 - Connect with contributors on our [Discord Server](https://discord.gg/your-discord-invite-link).
 
 Together, we can make `autodocs.ai` the ultimate solution for automated documentation. Let’s build the future—one contribution at a time!
