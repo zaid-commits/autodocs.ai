@@ -1,3 +1,4 @@
+'use client'
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,10 +18,13 @@ import {
   Code2,
   GitMerge,
   Menu,
+  Github,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import GitHubStats from "@/components/GitHubStats";
+import GitHubRepoInfo from "@/components/GitHubRepoInfo";
 
-const page = () => {
+const Page = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Header/Navigation - Improved with mobile responsiveness */}
@@ -99,6 +103,9 @@ const page = () => {
               <Badge className="px-3 py-1 text-xs bg-transparent border border-zinc-700 text-zinc-400">
                 v1.0.0
               </Badge>
+              <Badge className="px-3 py-1 text-xs bg-emerald-900/30 text-emerald-300 border-emerald-800">
+                <Github className="h-3 w-3 mr-1" /> Open Source
+              </Badge>
             </div>
 
             <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold mb-6 md:mb-8 tracking-tight leading-tight">
@@ -125,9 +132,15 @@ const page = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="h-12 px-8 text-black border-zinc-700 hover:border-zinc-500 hover:bg-gray-200 "
+                className="h-12 px-8 border-zinc-700 hover:border-zinc-500 text-white hover:bg-zinc-800"
+                onClick={() =>
+                  window.open(
+                    "https://github.com/zaid-commits/autodocs.ai",
+                    "_blank"
+                  )
+                }
               >
-                Book a Demo
+                <Github className="mr-2 h-5 w-5" /> Star on GitHub
               </Button>
             </div>
 
@@ -231,8 +244,6 @@ const page = () => {
                 <Card className="border-blue-900/20 bg-zinc-900/50 overflow-hidden shadow-xl">
                   <div className="md:grid md:grid-cols-2">
                     <div className="p-8">
-
-                      
                       <CardHeader className="px-0 pt-0">
                         <div className="mb-5 flex items-center">
                           <div className="rounded-full bg-blue-500/10 p-2 mr-3">
@@ -246,7 +257,6 @@ const page = () => {
                           Let our advanced AI handle your documentation needs
                         </CardDescription>
                       </CardHeader>
-
 
                       <CardContent className="px-0 pb-0 mt-6">
                         <ul className="space-y-5">
@@ -292,7 +302,9 @@ const page = () => {
                       <CardHeader className="px-0 pt-0">
                         <div className="mb-4 flex items-center">
                           <Layers className="h-5 w-5 mr-2 text-purple-400" />
-                          <CardTitle className="text-purple-400">Seamless Ecosystem Integration</CardTitle>
+                          <CardTitle className="text-purple-400">
+                            Seamless Ecosystem Integration
+                          </CardTitle>
                         </div>
                         <CardDescription className="text-zinc-400">
                           Works with your existing development tools
@@ -384,6 +396,69 @@ const page = () => {
                 </Card>
               </TabsContent>
             </Tabs>
+          </section>
+
+          {/* GitHub Repository Information */}
+          <section id="github" className="max-w-5xl mx-auto mb-16 md:mb-24">
+            <div className="text-center mb-12">
+              <Badge className="mb-4 text-white" variant="outline">
+                <Github className="h-3.5 w-3.5 mr-1.5" /> Open Source
+              </Badge>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">
+                Join our open-source community
+              </h2>
+              <p className="text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+                AutoDocs.AI is built in the open with contributions from
+                developers around the world. Help us improve and shape the
+                future of documentation automation.
+              </p>
+            </div>
+
+            <GitHubRepoInfo
+              repoName="autodocs.ai"
+              repoOwner="zaid-commits"
+              description="Open-source AI-powered documentation automation platform that helps developers create and maintain high-quality documentation with minimal effort."
+            />
+
+            <div className="mt-12">
+              <GitHubStats />
+            </div>
+
+            {/* Contribution CTA */}
+            <div className="bg-gradient-to-br from-zinc-900/70 to-zinc-950/90 mt-12 p-8 rounded-xl border border-zinc-800/50 text-center">
+              <h3 className="text-xl font-semibold mb-4">
+                Ready to contribute?
+              </h3>
+              <p className="text-zinc-400 mb-6 max-w-2xl mx-auto">
+                We welcome contributions of all sizes, from fixing typos to
+                implementing major features.
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <Button
+                  onClick={() =>
+                    window.open(
+                      "https://github.com/zaid-commits/autodocs.ai/issues",
+                      "_blank"
+                    )
+                  }
+                  className="bg-blue-600 hover:bg-blue-500"
+                >
+                  View Open Issues
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    window.open(
+                      "https://github.com/zaid-commits/autodocs.ai/blob/main/CONTRIBUTING.md",
+                      "_blank"
+                    )
+                  }
+                  className="border-zinc-700 text-white hover:bg-zinc-800"
+                >
+                  Read Contribution Guide
+                </Button>
+              </div>
+            </div>
           </section>
 
           {/* Call-to-action section - Improved visual appeal */}
@@ -635,4 +710,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;
