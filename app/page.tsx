@@ -129,10 +129,11 @@ const Page = () => {
                 Start for Free{" "}
                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
+
               <Button
                 size="lg"
                 variant="outline"
-                className="h-12 px-8 border-zinc-700 hover:border-zinc-500 text-white hover:bg-zinc-800"
+                className="h-12 px-8 border-zinc-700 hover:border-zinc-500 text-black hover:bg-gray-400"
                 onClick={() =>
                   window.open(
                     "https://github.com/zaid-commits/autodocs.ai",
@@ -453,7 +454,7 @@ const Page = () => {
                       "_blank"
                     )
                   }
-                  className="border-zinc-700 text-white hover:bg-zinc-800"
+                  className="border-zinc-700 text-black hover:bg-gray-400 font-medium"
                 >
                   Read Contribution Guide
                 </Button>
