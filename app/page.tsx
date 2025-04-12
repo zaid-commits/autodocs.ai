@@ -454,7 +454,7 @@ const Page = () => {
                       "_blank"
                     )
                   }
-                  className="border-zinc-700 text-black hover:bg-gray-400 font-medium"
+                  className="border-zinc-700 text-black hover:bg-gray-400 "
                 >
                   Read Contribution Guide
                 </Button>
