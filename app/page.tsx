@@ -23,6 +23,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GitHubStats from "@/components/GitHubStats";
 import GitHubRepoInfo from "@/components/GitHubRepoInfo";
+import Link from "next/link";
 
 const Page = () => {
   return (
@@ -116,7 +117,7 @@ const Page = () => {
               platform for developers
             </h1>
 
-            <p className="text-lg md:text-xl text-zinc-400 mb-10 md:mb-12 leading-relaxed max-w-2xl">
+            <p className="text-lg md:text-xl text-zinc-400 mb-10 md:mb-12 leading-relaxed max-w-2xl font-medium">
               Automate your documentation workflow with AI. Generate, organize,
               and maintain technical documentation effortlessly.
             </p>
@@ -126,7 +127,10 @@ const Page = () => {
                 size="lg"
                 className="group h-12 px-8 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-lg shadow-blue-900/20"
               >
-                Start for Free{" "}
+                <Link href="/generate" className="flex items-center">
+                  <Code2 className="mr-2 h-5 w-5" />{" "}
+                  Generate Docs
+                </Link>
                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
 

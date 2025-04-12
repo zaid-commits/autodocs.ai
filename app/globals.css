@@ -124,3 +124,7 @@
 *{
   font-family: 'Roboto';
 }
+
+body{
+  font-weight: 500;
+}
