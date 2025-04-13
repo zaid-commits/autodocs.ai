@@ -123,6 +123,7 @@
 
 *{
   font-family: 'Roboto';
+  overscroll-behavior: none;
 }
 
 body{
