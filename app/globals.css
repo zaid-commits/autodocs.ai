@@ -122,10 +122,12 @@
 }
 
 *{
-  font-family: 'Roboto';
+  font-family: 'Inter';
   overscroll-behavior: none;
 }
-
+#hero{
+  font-family: 'Roboto';
+}
 body{
-  font-weight: 500;
+  /* font-weight: 500; */
 }

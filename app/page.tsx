@@ -21,9 +21,9 @@ import {
   Github,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import GitHubStats from "@/components/GitHubStats";
 import GitHubRepoInfo from "@/components/GitHubRepoInfo";
 import Link from "next/link";
+import GitHubStats from "@/components/GitHubStats";
 
 const Page = () => {
   return (
@@ -109,7 +109,7 @@ const Page = () => {
               </Badge>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold mb-6 md:mb-8 tracking-tight leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold mb-6 md:mb-8 tracking-tight leading-tight" id="hero">
               The modern{" "}
               <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
                 documentation
@@ -426,7 +426,7 @@ const Page = () => {
             />
 
             <div className="mt-12">
-              <GitHubStats />
+              <GitHubStats/>
             </div>
 
             {/* Contribution CTA */}

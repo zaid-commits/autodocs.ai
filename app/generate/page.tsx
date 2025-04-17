@@ -1,8 +1,8 @@
 'use client'
-import DocumentGenerator from '@/components/DocumentGenerator'
 import React from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Code2, GitPullRequest } from 'lucide-react'
+import Placeholder from '@/components/Placeholder'
 
 const page = () => {
   return (
@@ -35,14 +35,14 @@ const page = () => {
               from repositories
             </h1>
 
-            <p className="text-lg text-zinc-400 mb-10 leading-relaxed max-w-2xl">
+            <p className="text-lg text-zinc-400  leading-relaxed max-w-2xl">
               Automatically extract and generate comprehensive documentation from any GitHub repository with our AI-powered tool.
             </p>
           </section>
 
           {/* Generator Section */}
-          <section className="max-w-3xl mx-auto">
-            <DocumentGenerator />
+          <section className="max-w-3xl mx-auto text-white">
+            <Placeholder/>
           </section>
         </div>
       </main>

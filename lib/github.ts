@@ -16,29 +16,41 @@ export interface GitHubContributor {
 }
 
 const GITHUB_API_BASE_URL = 'https://api.github.com';
-const REPO_OWNER = 'zaid-commits'; // Update this with actual GitHub username/org
-const REPO_NAME = 'autodocs.ai'; // Update this with actual repository name
+const DEFAULT_REPO_OWNER = 'zaid-commits'; // Default GitHub username/org
+const DEFAULT_REPO_NAME = 'autodocs.ai'; // Default repository name
 
 /**
  * Fetches repository stats from GitHub API
  */
-export async function fetchRepoStats(): Promise<GitHubRepoStats> {
+export async function fetchRepoStats(fullRepoName?: string): Promise<GitHubRepoStats> {
   try {
+    let repoOwner = DEFAULT_REPO_OWNER;
+    let repoName = DEFAULT_REPO_NAME;
+    
+    // Parse repository owner and name from full name if provided
+    if (fullRepoName) {
+      const [owner, name] = fullRepoName.split('/');
+      if (owner && name) {
+        repoOwner = owner;
+        repoName = name;
+      }
+    }
+    
     // Get basic repo information
-    const repoResponse = await fetch(`${GITHUB_API_BASE_URL}/repos/${REPO_OWNER}/${REPO_NAME}`);
+    const repoResponse = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}`);
     if (!repoResponse.ok) throw new Error('Failed to fetch repository data');
     const repoData = await repoResponse.json();
     
     // Get contributors count
-    const contributorsResponse = await fetch(`${GITHUB_API_BASE_URL}/repos/${REPO_OWNER}/${REPO_NAME}/contributors?per_page=1&anon=false`);
+    const contributorsResponse = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/contributors?per_page=1&anon=false`);
     const contributorsCount = parseInt(contributorsResponse.headers.get('Link')?.match(/page=(\d+)>; rel="last"/)?.[1] || '0');
     
     // Get pull requests count
-    const prResponse = await fetch(`${GITHUB_API_BASE_URL}/repos/${REPO_OWNER}/${REPO_NAME}/pulls?state=all&per_page=1`);
+    const prResponse = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/pulls?state=all&per_page=1`);
     const prCount = parseInt(prResponse.headers.get('Link')?.match(/page=(\d+)>; rel="last"/)?.[1] || '0');
     
     // Get commits count
-    const commitsResponse = await fetch(`${GITHUB_API_BASE_URL}/repos/${REPO_OWNER}/${REPO_NAME}/commits?per_page=1`);
+    const commitsResponse = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/commits?per_page=1`);
     const commitsCount = parseInt(commitsResponse.headers.get('Link')?.match(/page=(\d+)>; rel="last"/)?.[1] || '0');
     
     return {
@@ -67,14 +79,124 @@ export async function fetchRepoStats(): Promise<GitHubRepoStats> {
 /**
  * Fetches top contributors from GitHub API
  */
-export async function fetchTopContributors(limit: number = 5): Promise<GitHubContributor[]> {
+export async function fetchTopContributors(fullRepoName?: string, limit: number = 5): Promise<GitHubContributor[]> {
   try {
-    const response = await fetch(`${GITHUB_API_BASE_URL}/repos/${REPO_OWNER}/${REPO_NAME}/contributors?per_page=${limit}`);
+    let repoOwner = DEFAULT_REPO_OWNER;
+    let repoName = DEFAULT_REPO_NAME;
+    
+    // Parse repository owner and name from full name if provided
+    if (fullRepoName) {
+      const [owner, name] = fullRepoName.split('/');
+      if (owner && name) {
+        repoOwner = owner;
+        repoName = name;
+      }
+    }
+    
+    const response = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/contributors?per_page=${limit}`);
     if (!response.ok) throw new Error('Failed to fetch contributors');
     const contributors = await response.json();
     return contributors;
   } catch (error) {
     console.error('Error fetching contributors:', error);
     return [];
+  }
+}
+
+/**
+ * Fetches repository README content
+ */
+export async function fetchRepoReadme(fullRepoName?: string): Promise<string> {
+  try {
+    let repoOwner = DEFAULT_REPO_OWNER;
+    let repoName = DEFAULT_REPO_NAME;
+    
+    // Parse repository owner and name from full name if provided
+    if (fullRepoName) {
+      const [owner, name] = fullRepoName.split('/');
+      if (owner && name) {
+        repoOwner = owner;
+        repoName = name;
+      }
+    }
+    
+    const response = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/readme`);
+    if (!response.ok) throw new Error('Failed to fetch README');
+    const readmeData = await response.json();
+    
+    // README content is base64 encoded
+    const content = atob(readmeData.content);
+    return content;
+  } catch (error) {
+    console.error('Error fetching README:', error);
+    return 'README not available';
+  }
+}
+
+/**
+ * Fetches repository issues
+ */
+export async function fetchRepoIssues(fullRepoName?: string, limit: number = 10): Promise<string> {
+  try {
+    let repoOwner = DEFAULT_REPO_OWNER;
+    let repoName = DEFAULT_REPO_NAME;
+    
+    // Parse repository owner and name from full name if provided
+    if (fullRepoName) {
+      const [owner, name] = fullRepoName.split('/');
+      if (owner && name) {
+        repoOwner = owner;
+        repoName = name;
+      }
+    }
+    
+    const response = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/issues?state=open&per_page=${limit}`);
+    if (!response.ok) throw new Error('Failed to fetch issues');
+    const issues = await response.json();
+    
+    if (issues.length === 0) {
+      return 'No open issues found';
+    }
+    
+    return issues.map((issue: any) => 
+      `#${issue.number}: ${issue.title}\n${issue.body?.slice(0, 150)}${issue.body?.length > 150 ? '...' : ''}\n`
+    ).join('\n');
+  } catch (error) {
+    console.error('Error fetching issues:', error);
+    return 'Issues not available';
+  }
+}
+
+/**
+ * Fetches repository pull requests
+ */
+export async function fetchRepoPullRequests(fullRepoName?: string, limit: number = 10): Promise<string> {
+  try {
+    let repoOwner = DEFAULT_REPO_OWNER;
+    let repoName = DEFAULT_REPO_NAME;
+    
+    // Parse repository owner and name from full name if provided
+    if (fullRepoName) {
+      const [owner, name] = fullRepoName.split('/');
+      if (owner && name) {
+        repoOwner = owner;
+        repoName = name;
+      }
+    }
+    
+    const response = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/pulls?state=open&per_page=${limit}`);
+    if (!response.ok) throw new Error('Failed to fetch pull requests');
+    const prs = await response.json();
+    
+    if (prs.length === 0) {
+      return 'No open pull requests found';
+    }
+    
+    return prs.map((pr: any) => 
+      `#${pr.number}: ${pr.title}\n${pr.body?.slice(0, 150)}${pr.body?.length > 150 ? '...' : ''}\n`
+    ).join('\n');
+  } catch (error) {
+    console.error('Error fetching pull requests:', error);
+    return 'Pull requests not available';
   }
 }
