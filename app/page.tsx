@@ -426,7 +426,12 @@ const Page = () => {
             />
 
             <div className="mt-12">
-              <GitHubStats/>
+              <GitHubStats 
+                repoName="zaid-commits/autodocs.ai"
+                documentation="" 
+                isLoading={false}
+                error={null}
+              />
             </div>
 
             {/* Contribution CTA */}
