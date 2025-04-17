@@ -112,7 +112,7 @@ export default function GitHubRepoInfo({
           <div className="flex flex-wrap items-center gap-4 mt-4">
             <Button 
               variant="outline" 
-              className="flex items-center gap-2 border-zinc-700 text-white hover:bg-zinc-700"
+              className="flex items-center gap-2 border-zinc-700 text-black hover:bg-zinc-700"
               onClick={() => window.open(repoUrl, '_blank')}
             >
               <Code className="h-4 w-4" />
@@ -129,7 +129,7 @@ export default function GitHubRepoInfo({
             
             <Button 
               variant="outline"
-              className="flex items-center gap-2 text-white hover:bg-zinc-700 border-zinc-700"
+              className="flex items-center gap-2 text-black hover:bg-zinc-700 border-zinc-700"
               onClick={() => window.open(`${repoUrl}/fork`, '_blank')}
             >
               <GitFork className="h-4 w-4 text-blue-400" />

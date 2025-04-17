@@ -2,7 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { GitHubRepoStats, GitHubContributor, fetchRepoStats, fetchTopContributors } from '@/lib/github';
-import { Loader2, Star, GitFork, Users, GitPullRequest, GitCommit, BookOpen, Code, MessageSquare } from 'lucide-react';
+import { Loader2, Star, GitFork, Users, GitPullRequest, GitCommit, BookOpen, Code, MessageSquare, Download } from 'lucide-react';
+import { generateFullDocumentationPDF } from '@/utils/pdfGenerator';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface GitHubStatsProps {
   repoName?: string; // Keep repoName to fetch stats/contributors
@@ -173,6 +176,44 @@ export default function GitHubStats({
           </div>
         ) : (
            <p className="text-zinc-500 text-sm italic">No documentation generated.</p>
+        )}
+
+        {/* PDF Download Button */}
+        {documentation && !isLoading && !error && (
+          <div className="flex justify-end mt-4">
+            <Button
+              onClick={() => {
+                if (!repoName) {
+                  toast.error('Repository information is missing.');
+                  return;
+                }
+                
+                try {
+                  // Split the repoName to get owner and repo parts
+                  const [owner, repo] = repoName.split('/');
+                  if (!owner || !repo) {
+                    toast.error('Invalid repository format.');
+                    return;
+                  }
+                  
+                  generateFullDocumentationPDF(
+                    documentation,
+                    owner,
+                    repo
+                  );
+                  toast.success('PDF downloaded successfully!');
+                } catch (error) {
+                  console.error('Error generating PDF:', error);
+                  toast.error('Failed to download PDF.');
+                }
+              }}
+              className="flex items-center gap-2"
+              disabled={!documentation || isLoading || !!error}
+            >
+              <Download className="h-4 w-4" />
+              Download PDF
+            </Button>
+          </div>
         )}
       </div>
 

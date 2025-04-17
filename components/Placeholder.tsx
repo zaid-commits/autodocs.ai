@@ -5,9 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Star, Loader2, Zap } from 'lucide-react';
+import { Star, Loader2, Zap, Download } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Switch } from '@/components/ui/switch';
+import { generateFullDocumentationPDF } from '@/utils/pdfGenerator';
+import { toast } from 'sonner';
 
 interface ContextOptions {
     includeReadme: boolean;
@@ -272,6 +274,21 @@ const Placeholder: React.FC = () => {
         setActiveRepo(null);
     };
 
+    const handleDownloadPDF = () => {
+        if (!generatedDocs || !activeRepo) return;
+        try {
+            generateFullDocumentationPDF(
+                generatedDocs, 
+                activeRepo.owner,
+                activeRepo.name
+            );
+            toast.success('PDF downloaded successfully!');
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            toast.error('Failed to download PDF.');
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="w-full max-w-3xl mx-auto my-16 flex flex-col items-center justify-center">
@@ -317,12 +334,22 @@ const Placeholder: React.FC = () => {
                             </h2>
                             <p className="text-zinc-400 text-sm">Generated documentation</p>
                         </div>
-                        <Button 
-                            onClick={resetForm}
-                            variant="outline"
-                            className="border-zinc-700 hover:border-zinc-500 text-black">
-                            Generate Another
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            <Button 
+                                onClick={resetForm}
+                                variant="outline"
+                                className="border-zinc-700 hover:border-zinc-500 text-black">
+                                Generate Another
+                            </Button>
+                            <Button 
+                                onClick={handleDownloadPDF}
+                                variant="default"
+                                className="flex items-center gap-2"
+                            >
+                                <Download className="h-4 w-4" />
+                                Download as PDF
+                            </Button>
+                        </div>
                     </div>
 
                     <Tabs defaultValue="documentation" className="w-full">
