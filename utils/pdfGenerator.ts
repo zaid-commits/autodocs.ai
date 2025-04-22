@@ -26,13 +26,13 @@ export const generateDocumentationPDF = (
 
   // Add title
   doc.setFontSize(22);
-  doc.setFont('helvetica', 'bold');
+  doc.setFont('inter', 'bold'); // Changed from helvetica to inter
   doc.setTextColor(51, 51, 51);
   doc.text(`${repoOwner}/${repoName}`, 20, 20);
 
   // Add subtitle
   doc.setFontSize(14);
-doc.setFont('Times New Roman', 'normal');
+  doc.setFont('inter', 'normal'); // Changed from Times New Roman to inter
   doc.setTextColor(102, 102, 102);
   doc.text('Generated Documentation', 20, 30);
   
@@ -72,19 +72,19 @@ doc.setFont('Times New Roman', 'normal');
     if (line.startsWith('# ')) {
       // Level 1 heading
       doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont('times', 'bolditalic'); // Changed from helvetica to inter
       doc.setTextColor(51, 51, 51);
       line = line.substring(2);
     } else if (line.startsWith('## ')) {
       // Level 2 heading
       doc.setFontSize(16);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont('inter', 'bold'); // Changed from helvetica to inter
       doc.setTextColor(51, 51, 51);
       line = line.substring(3);
     } else if (line.startsWith('### ')) {
       // Level 3 heading
       doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
+      doc.setFont('inter', 'bold'); // Changed from helvetica to inter
       doc.setTextColor(51, 51, 51);
       line = line.substring(4);
     } else if (line.startsWith('```')) {
@@ -106,7 +106,7 @@ doc.setFont('Times New Roman', 'normal');
         
         // Add code content
         doc.setFontSize(9);
-        doc.setFont('courier', 'normal');
+        doc.setFont('courier', 'normal'); // Keep courier for code blocks for better readability
         doc.setTextColor(80, 80, 80);
         
         const codeLines = codeBlockContent.split('\n');
@@ -128,7 +128,7 @@ doc.setFont('Times New Roman', 'normal');
     } else {
       // Regular text
       doc.setFontSize(11);
-      doc.setFont('helvetica', 'normal');
+      doc.setFont('inter', 'normal'); // Changed from helvetica to inter
       doc.setTextColor(0, 0, 0);
       
       // Bold text within **, e.g. **bold text**
