@@ -21,7 +21,7 @@ const inter = Inter({
 // Removed unused Roboto font configuration
 
 export const metadata: Metadata = {
-  title: "AutoDocs.ai",
+  title: "AutoDocs AI",
   description: "The documentation tool that will change your life",
 };
 

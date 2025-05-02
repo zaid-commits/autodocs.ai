@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { GitHubRepoStats, GitHubContributor, fetchRepoStats, fetchTopContributors } from '@/lib/github';
-import { Loader2, Star, GitFork, Users, GitPullRequest, GitCommit, BookOpen, Code, MessageSquare, Download } from 'lucide-react';
+import { Loader2, Star, GitFork, Users, GitPullRequest, GitCommit, BookOpen, Code, MessageSquare, Download, Database } from 'lucide-react';
 import { generateFullDocumentationPDF } from '@/utils/pdfGenerator';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 
 interface GitHubStatsProps {
   repoName?: string; // Keep repoName to fetch stats/contributors
@@ -18,6 +19,10 @@ interface GitHubStatsProps {
   documentation: string; // Added documentation prop
   isLoading: boolean; // Added isLoading prop (for documentation)
   error: string | null; // Added error prop (for documentation)
+  cacheInfo?: { 
+    fromCache: boolean; 
+    cachedAt?: string;
+  };
 }
 
 export default function GitHubStats({
@@ -25,7 +30,8 @@ export default function GitHubStats({
   contextOptions,
   documentation,
   isLoading,
-  error
+  error,
+  cacheInfo
 }: GitHubStatsProps) {
   const [repoStats, setRepoStats] = useState<GitHubRepoStats | null>(null);
   const [contributors, setContributors] = useState<GitHubContributor[]>([]);
@@ -64,8 +70,6 @@ export default function GitHubStats({
 
     loadStatsAndContributors();
   }, [repoName]); // Only refetch when repoName changes
-
-  // Removed mock functions for fetching context
 
   // Display loading indicator for stats if stats are loading
   if (statsLoading) {
@@ -130,6 +134,11 @@ export default function GitHubStats({
         <h3 className="text-xl font-semibold mb-4 flex items-center">
           <BookOpen className="h-5 w-5 mr-2 text-blue-400" />
           Generated Documentation
+          {cacheInfo?.fromCache && (
+            <Badge className="ml-2 bg-teal-900/40 text-teal-300 border-teal-800">
+              <Database className="h-3 w-3 mr-1" /> Cached
+            </Badge>
+          )}
         </h3>
 
         {/* Display Context Options Used */}

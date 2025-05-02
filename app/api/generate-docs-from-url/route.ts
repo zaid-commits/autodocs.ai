@@ -2,6 +2,8 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
 import { Octokit } from "octokit";
+import clientPromise from '@/lib/mongodb-edge';
+import { IContextOptions, IDocCache, areContextOptionsEqual } from '@/models/DocCache';
 
 // Configure model with faster response options
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY || "");
@@ -25,7 +27,7 @@ const CACHE_TTL = 30 * 60 * 1000;
 const TIMEOUT_MS = 10000; // 10 seconds timeout
 
 // Add request timeout handling
-export const runtime = 'edge'; // Use Edge runtime for better timeout handling
+export const runtime = 'nodejs'; // Use Node.js runtime to resolve 'dns' module issue
 export const maxDuration = 59; // Set maximum duration to 59 seconds (just under the 60s Vercel limit)
 
 // Maximum number of retries for API calls
@@ -165,21 +167,10 @@ export async function POST(req: Request): Promise<Response> {
   console.time('documentation-generation');
 
   try {
-    const { repoUrl, contextOptions } = await req.json();
+    const { repoUrl, contextOptions, forceRefresh = false } = await req.json();
 
     if (!repoUrl) {
       return new NextResponse(JSON.stringify({ error: "Missing repository URL." }), { status: 400 });
-    }
-
-    // Generate a cache key for this specific request
-    const optionsKey = JSON.stringify(contextOptions || {});
-    const cacheKey = `docs-${repoUrl}-${optionsKey}`;
-    
-    // Return cached result if available
-    if (cache.has(cacheKey) && (Date.now() - cache.get(cacheKey).timestamp) < CACHE_TTL) {
-      console.timeEnd('documentation-generation');
-      console.log('Documentation returned from cache');
-      return new NextResponse(JSON.stringify(cache.get(cacheKey).data), { status: 200 });
     }
 
     // Enhanced URL matching to handle various formats
@@ -204,6 +195,53 @@ export async function POST(req: Request): Promise<Response> {
     }
 
     console.log(`Processing repository: ${owner}/${repoName}`);
+    
+    // Check MongoDB cache first before proceeding (if not forced refresh)
+    if (!forceRefresh) {
+      try {
+        const client = await clientPromise;
+        const db = client.db();
+        const collection = db.collection('doccaches');
+        
+        // Try to find an existing cache entry
+        const cachedDocs = await collection.find({
+          repoOwner: owner,
+          repoName: repoName
+        }).toArray();
+        
+        // Find the best match by comparing context options
+        const currentOptions: IContextOptions = {
+          includeReadme: contextOptions?.includeReadme ?? true,
+          includeSourceCode: contextOptions?.includeSourceCode ?? true,
+          includeIssues: contextOptions?.includeIssues ?? false,
+          includePullRequests: contextOptions?.includePullRequests ?? false,
+          quickMode: contextOptions?.quickMode ?? true,
+          customPrompt: contextOptions?.customPrompt ?? ''
+        };
+        
+        const matchingDoc = cachedDocs.find(doc => 
+          areContextOptionsEqual(doc.contextOptions, currentOptions)
+        );
+        
+        if (matchingDoc) {
+          console.log('Documentation returned from MongoDB cache');
+          console.timeEnd('documentation-generation');
+          return new NextResponse(JSON.stringify({ 
+            documentation: matchingDoc.documentation,
+            fromCache: true,
+            cachedAt: matchingDoc.updatedAt
+          }), { status: 200 });
+        }
+        
+        console.log('No cached version found, generating new documentation');
+      } catch (dbError) {
+        // If there's an error with MongoDB, log it but continue with generation
+        console.error('MongoDB connection error:', dbError);
+        // Continue with generation and in-memory cache
+      }
+    } else {
+      console.log('Forced refresh requested, skipping cache');
+    }
     
     // Create a promise that rejects after a specific time to handle overall timeout
     const overallTimeoutPromise = new Promise((_, reject) => {
@@ -370,7 +408,55 @@ Include a directory structure overview to help understand the project organizati
       
       console.log('Documentation successfully generated');
       const responseData = { documentation: generatedDocumentation };
+      
+      // Define cache key for memory cache
+      const cacheKey = `docs-${owner}-${repoName}-${JSON.stringify(contextOptions)}`;
       cache.set(cacheKey, { data: responseData, timestamp: Date.now() });
+      
+      // Store in MongoDB for persistence
+      try {
+        const client = await clientPromise;
+        const db = client.db();
+        const collection = db.collection('doccaches');
+        
+        const now = new Date();
+        
+        // Save to MongoDB
+        await collection.updateOne(
+          {
+            repoOwner: owner,
+            repoName: repoName,
+            'contextOptions.includeReadme': contextOptions?.includeReadme ?? true,
+            'contextOptions.includeSourceCode': contextOptions?.includeSourceCode ?? true,
+            'contextOptions.includeIssues': contextOptions?.includeIssues ?? false,
+            'contextOptions.includePullRequests': contextOptions?.includePullRequests ?? false,
+          },
+          {
+            $set: {
+              repoOwner: owner,
+              repoName: repoName,
+              contextOptions: {
+                includeReadme: contextOptions?.includeReadme ?? true,
+                includeSourceCode: contextOptions?.includeSourceCode ?? true,
+                includeIssues: contextOptions?.includeIssues ?? false,
+                includePullRequests: contextOptions?.includePullRequests ?? false,
+                quickMode: contextOptions?.quickMode ?? true,
+                customPrompt: contextOptions?.customPrompt ?? '',
+              },
+              documentation: generatedDocumentation,
+              updatedAt: now
+            },
+            $setOnInsert: {
+              createdAt: now
+            }
+          },
+          { upsert: true }
+        );
+        console.log('Documentation saved to MongoDB');
+      } catch (dbError) {
+        console.error('Error saving to MongoDB:', dbError);
+        // Continue even if MongoDB save fails
+      }
       
       return responseData;
     };
