@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import React from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,71 +24,83 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GitHubRepoInfo from "@/components/GitHubRepoInfo";
 import Link from "next/link";
 import GitHubStats from "@/components/GitHubStats";
-import { SignInButton, SignUpButton } from "@clerk/nextjs";
+import { SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
 
 const Page = () => {
+  const user = useUser();
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Header/Navigation - Improved with mobile responsiveness */}
       <header className="sticky top-0 z-50 border-b border-zinc-800 py-4 backdrop-blur-lg bg-zinc-950/80">
-      <div className="container mx-auto px-4 flex justify-between items-center">
-        {/* Logo + Title */}
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
-            <Code2 className="h-4 w-4 text-white" />
+        <div className="container mx-auto px-4 flex justify-between items-center">
+          {/* Logo + Title */}
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+              <Code2 className="h-4 w-4 text-white" />
+            </div>
+            <span className="text-xl font-semibold tracking-tight">
+              AutoDocs.AI
+            </span>
           </div>
-          <span className="text-xl font-semibold tracking-tight">
-            AutoDocs.AI
-          </span>
-        </div>
 
-        {/* Nav Links (Hidden on small screens) */}
-        <div className="hidden md:flex items-center space-x-8">
-          <a
-            href="#"
-            className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-          >
-            Features
-          </a>
-          <a
-            href="#"
-            className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-          >
-            Pricing
-          </a>
-          <a
-            href="#"
-            className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-          >
-            Documentation
-          </a>
-          <a
-            href="#"
-            className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-          >
-            Blog
-          </a>
-        </div>
+          {/* Nav Links (Hidden on small screens) */}
+          <div className="hidden md:flex items-center space-x-8">
+            <a
+              href="#"
+              className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+            >
+              Features
+            </a>
+            <a
+              href="#"
+              className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+            >
+              Pricing
+            </a>
+            <a
+              href="#"
+              className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+            >
+              Documentation
+            </a>
+            <a
+              href="#"
+              className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+            >
+              Blog
+            </a>
+          </div>
 
-        {/* Auth + Mobile Menu Button */}
-        <div className="flex items-center gap-3">
-          <SignInButton mode="redirect" >
-            <Button variant="ghost" className="hidden md:inline-flex text-zinc-400 hover:text-white">
-              Log In
+          {/* Auth + Mobile Menu Button */}
+          <div className="flex items-center gap-3">
+            {user.isSignedIn ? (
+              <>
+                <span className="text-sm font-medium text-zinc-400">
+                  Welcome, {user.user?.firstName || "User"}!
+                </span>
+                {user?.user.imageUrl && <UserButton />}
+              </>
+            ) : (
+              <>
+                <SignInButton mode="redirect">
+                  <Button
+                    variant="ghost"
+                    className="hidden md:inline-flex text-zinc-400 cursor-pointer "
+                  >
+                    Log In
+                  </Button>
+                </SignInButton>
+                <SignUpButton mode="redirect">
+                  <Button className="hidden md:inline-flex cursor-pointer">Sign Up</Button>
+                </SignUpButton>
+              </>
+            )}
+            <Button variant="outline" size="icon" className="md:hidden">
+              <Menu className="h-5 w-5" />
             </Button>
-          </SignInButton>
-          <SignUpButton mode="redirect" >
-            <Button className="hidden md:inline-flex">
-              Sign Up
-            </Button>
-          </SignUpButton>
-          <Button variant="outline" size="icon" className="md:hidden">
-            <Menu className="h-5 w-5" />
-          </Button>
-          
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
 
       <main>
         <div className="container mx-auto px-4 py-16 md:py-24 relative">
@@ -116,7 +128,10 @@ const Page = () => {
               </Badge>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold mb-6 md:mb-8 tracking-tight leading-tight" id="hero">
+            <h1
+              className="text-4xl sm:text-5xl md:text-7xl font-extrabold mb-6 md:mb-8 tracking-tight leading-tight"
+              id="hero"
+            >
               The modern{" "}
               <span className="bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent">
                 documentation
@@ -132,11 +147,10 @@ const Page = () => {
             <div className="flex flex-wrap gap-4 justify-center">
               <Button
                 size="lg"
-                className="group h-12 px-8 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-lg shadow-blue-900/20"
+                className="group h-12 px-8 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 shadow-lg shadow-blue-900/20 cursor-pointer"
               >
                 <Link href="/generate" className="flex items-center">
-                  <Code2 className="mr-2 h-5 w-5" />{" "}
-                  Generate Docs
+                  <Code2 className="mr-2 h-5 w-5" /> Generate Docs
                 </Link>
                 <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </Button>
@@ -144,7 +158,7 @@ const Page = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="h-12 px-8 border-zinc-700 hover:border-zinc-500 text-black hover:bg-gray-400"
+                className="h-12 px-8 border-zinc-700 hover:border-zinc-500 text-black hover:bg-gray-400 cursor-pointer"
                 onClick={() =>
                   window.open(
                     "https://github.com/zaid-commits/autodocs.ai",
@@ -433,9 +447,9 @@ const Page = () => {
             />
 
             <div className="mt-12">
-              <GitHubStats 
+              <GitHubStats
                 repoName="zaid-commits/autodocs.ai"
-                documentation="" 
+                documentation=""
                 isLoading={false}
                 error={null}
               />
