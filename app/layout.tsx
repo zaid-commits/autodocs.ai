@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import {
+  ClerkProvider,
+} from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
-import { Inter, Roboto } from "next/font/google"; // Import Inter font
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 
@@ -15,14 +18,13 @@ const geistMono = Geist_Mono({
 });
 
 const inter = Inter({
-  variable: "--font-inter", // Define Inter font variable
+  variable: "--font-inter",
   subsets: ["latin"],
 });
-// Removed unused Roboto font configuration
 
 export const metadata: Metadata = {
-  title: "AutoDocs AI",
-  description: "The documentation tool that will change your life",
+  title: "AutoDocs",
+  description: "The AI Documentation Generator that will revolutionize your workflow.",
 };
 
 export default function RootLayout({
@@ -31,13 +33,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
-      >
-        {children}
-        <Toaster position="top-right" theme="dark" closeButton />
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body
+          className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
+        >
+      
+          {children}
+          <Toaster position="top-right" theme="dark" closeButton />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

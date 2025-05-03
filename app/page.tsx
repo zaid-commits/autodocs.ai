@@ -18,70 +18,77 @@ import {
   Code2,
   GitMerge,
   Menu,
-  Github,
+  Github as SimpleGithub,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import GitHubRepoInfo from "@/components/GitHubRepoInfo";
 import Link from "next/link";
 import GitHubStats from "@/components/GitHubStats";
+import { SignInButton, SignUpButton } from "@clerk/nextjs";
 
 const Page = () => {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       {/* Header/Navigation - Improved with mobile responsiveness */}
       <header className="sticky top-0 z-50 border-b border-zinc-800 py-4 backdrop-blur-lg bg-zinc-950/80">
-        <div className="container mx-auto px-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
-              <Code2 className="h-4 w-4 text-white" />
-            </div>
-            <span className="text-xl font-semibold tracking-tight">
-              AutoDocs.AI
-            </span>
+      <div className="container mx-auto px-4 flex justify-between items-center">
+        {/* Logo + Title */}
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center">
+            <Code2 className="h-4 w-4 text-white" />
           </div>
-          <div className="hidden md:flex items-center space-x-8">
-            <a
-              href="#"
-              className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-            >
-              Features
-            </a>
-            <a
-              href="#"
-              className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-            >
-              Pricing
-            </a>
-            <a
-              href="#"
-              className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-            >
-              Documentation
-            </a>
-            <a
-              href="#"
-              className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
-            >
-              Blog
-            </a>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hidden md:inline-flex text-zinc-400 "
-            >
+          <span className="text-xl font-semibold tracking-tight">
+            AutoDocs.AI
+          </span>
+        </div>
+
+        {/* Nav Links (Hidden on small screens) */}
+        <div className="hidden md:flex items-center space-x-8">
+          <a
+            href="#"
+            className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+          >
+            Features
+          </a>
+          <a
+            href="#"
+            className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+          >
+            Pricing
+          </a>
+          <a
+            href="#"
+            className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+          >
+            Documentation
+          </a>
+          <a
+            href="#"
+            className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
+          >
+            Blog
+          </a>
+        </div>
+
+        {/* Auth + Mobile Menu Button */}
+        <div className="flex items-center gap-3">
+          <SignInButton mode="redirect" >
+            <Button variant="ghost" className="hidden md:inline-flex text-zinc-400 hover:text-white">
               Log In
             </Button>
-            <Button size="sm" className="hidden md:inline-flex">
+          </SignInButton>
+          <SignUpButton mode="redirect" >
+            <Button className="hidden md:inline-flex">
               Sign Up
             </Button>
-            <Button variant="outline" size="icon" className="md:hidden">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </div>
+          </SignUpButton>
+          <Button variant="outline" size="icon" className="md:hidden">
+            <Menu className="h-5 w-5" />
+          </Button>
+          
         </div>
-      </header>
+      </div>
+    </header>
 
       <main>
         <div className="container mx-auto px-4 py-16 md:py-24 relative">
@@ -105,7 +112,7 @@ const Page = () => {
                 v1.0.0
               </Badge>
               <Badge className="px-3 py-1 text-xs bg-emerald-900/30 text-emerald-300 border-emerald-800">
-                <Github className="h-3 w-3 mr-1" /> Open Source
+                <SimpleGithub className="h-3 w-3 mr-1" /> Open Source
               </Badge>
             </div>
 
@@ -145,7 +152,7 @@ const Page = () => {
                   )
                 }
               >
-                <Github className="mr-2 h-5 w-5" /> Star on GitHub
+                <SimpleGithub className="mr-2 h-5 w-5" /> Star on GitHub
               </Button>
             </div>
 
@@ -407,7 +414,7 @@ const Page = () => {
           <section id="github" className="max-w-5xl mx-auto mb-16 md:mb-24">
             <div className="text-center mb-12">
               <Badge className="mb-4 text-white" variant="outline">
-                <Github className="h-3.5 w-3.5 mr-1.5" /> Open Source
+                <SimpleGithub className="h-3.5 w-3.5 mr-1.5" /> Open Source
               </Badge>
               <h2 className="text-3xl md:text-4xl font-bold mb-4 tracking-tight">
                 Join our open-source community
