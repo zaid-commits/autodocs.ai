@@ -5,10 +5,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Star, Loader2, Zap, Download } from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Star, Loader2, Zap } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { generateFullDocumentationPDF } from '@/utils/pdfGenerator';
 import { toast } from 'sonner';
 
 interface ContextOptions {
@@ -16,8 +14,8 @@ interface ContextOptions {
     includeSourceCode: boolean;
     includeIssues: boolean;
     includePullRequests: boolean;
-    quickMode: boolean;  // New option for faster processing
-    customPrompt: string; // New option for custom detailed instructions
+    quickMode: boolean;
+    customPrompt: string;
 }
 
 interface PopularRepo {
@@ -30,20 +28,14 @@ interface PopularRepo {
 const Placeholder: React.FC = () => {
     const [repoUrl, setRepoUrl] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [loadingProgress, setLoadingProgress] = useState<string>('Initializing...');
-    const [estimatedTime, setEstimatedTime] = useState<number>(0);
-    const [loadingTimer, setLoadingTimer] = useState<NodeJS.Timeout | null>(null);
     const [error, setError] = useState<string>('');
-    const [generatedDocs, setGeneratedDocs] = useState<string>('');
-    const [displayMode, setDisplayMode] = useState<'form' | 'results'>('form');
-    const [activeRepo, setActiveRepo] = useState<{owner: string, name: string} | null>(null);
     const [contextOptions, setContextOptions] = useState<ContextOptions>({
         includeReadme: true,
         includeSourceCode: true,
         includeIssues: false,
         includePullRequests: false,
-        quickMode: true,     // Default to quick mode for faster results
-        customPrompt: ''     // Default to empty string
+        quickMode: true,
+        customPrompt: ''
     });
     const router = useRouter();
 
@@ -88,60 +80,16 @@ const Placeholder: React.FC = () => {
         });
     };
 
-    // Update loading progress to provide feedback
-    const updateLoadingProgress = () => {
-        const loadingStates = [
-            'Preparing request...',
-            'Analyzing repository structure...',
-            'Processing code files...',
-            'Extracting key information...',
-            'Generating documentation...',
-            'Formatting results...',
-            'Almost done...'
-        ];
-        
-        let currentStep = 0;
-        const interval = setInterval(() => {
-            if (currentStep < loadingStates.length) {
-                setLoadingProgress(loadingStates[currentStep]);
-                currentStep++;
-            }
-        }, 3000);
-        
-        // Set estimated time based on quick mode (faster) or normal mode
-        setEstimatedTime(contextOptions.quickMode ? 15 : 30);
-        
-        // Start countdown timer
-        const timer = setInterval(() => {
-            setEstimatedTime((prev) => {
-                if (prev <= 1) {
-                    clearInterval(timer);
-                    return 0;
-                }
-                return prev - 1;
-            });
-        }, 1000);
-        
-        setLoadingTimer(interval);
-        return { interval, timer };
-    };
-
     const handleSubmit = async (e: React.FormEvent): Promise<void> => {
         e.preventDefault();
         setError('');
-        setIsLoading(true);
-        setGeneratedDocs('');
-        setLoadingProgress('Initializing...');
         
-        // Start the loading progress updates
-        const { interval, timer } = updateLoadingProgress();
-
         try {
             if (!repoUrl.trim()) {
                 throw new Error('Please enter a GitHub repository URL');
             }
 
-            // Extract repo name from URL properly
+            // Extract repo owner and name from URL
             let repoOwner: string;
             let repoName: string;
             
@@ -166,127 +114,32 @@ const Placeholder: React.FC = () => {
                 }
             }
             
-            // Store context options in localStorage
+            // Store context options in localStorage before navigation
             localStorage.setItem('repoContextOptions', JSON.stringify(contextOptions));
             
-            // Make the API request directly instead of redirecting
-            const fullRepoUrl = `https://github.com/${repoOwner}/${repoName}`;
+            // Redirect to the repo page with the owner and repo name
+            setIsLoading(true);
+            router.push(`/repo/${repoOwner}/${repoName}`);
             
-            // Set a timeout to avoid hanging requests
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 60000); // 1 minute timeout
-            
-            const response = await fetch('/api/generate-docs-from-url', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    repoUrl: fullRepoUrl,
-                    contextOptions: contextOptions,
-                }),
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `API request failed with status ${response.status}`);
-            }
-
-            const result = await response.json();
-            setGeneratedDocs(result.documentation);
-            setActiveRepo({ owner: repoOwner, name: repoName });
-            setDisplayMode('results');
-
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
             setIsLoading(false);
-            // Clear the intervals
-            if (loadingTimer) clearInterval(loadingTimer);
-            if (interval) clearInterval(interval);
-            if (timer) clearInterval(timer);
         }
     };
 
-    const handleRepoCardClick = async (repoName: string): Promise<void> => {
+    const handleRepoCardClick = (repoName: string): void => {
         // Parse owner/repo from the string
         const [owner, repo] = repoName.split('/');
         if (!owner || !repo) return;
         
         setRepoUrl(`${owner}/${repo}`);
+        
+        // Store context options in localStorage
+        localStorage.setItem('repoContextOptions', JSON.stringify(contextOptions));
+        
+        // Redirect to the repo page
         setIsLoading(true);
-        setError('');
-        setGeneratedDocs('');
-        setLoadingProgress('Initializing...');
-        
-        // Start the loading progress updates
-        const { interval, timer } = updateLoadingProgress();
-        
-        try {
-            // Store default context options before making request
-            localStorage.setItem('repoContextOptions', JSON.stringify(contextOptions));
-            
-            // Make API request directly
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 60000); // 1 minute timeout
-            
-            const response = await fetch('/api/generate-docs-from-url', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    repoUrl: `https://github.com/${owner}/${repo}`,
-                    contextOptions: contextOptions,
-                }),
-                signal: controller.signal
-            });
-            
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `API request failed with status ${response.status}`);
-            }
-
-            const result = await response.json();
-            setGeneratedDocs(result.documentation);
-            setActiveRepo({ owner, name: repo });
-            setDisplayMode('results');
-            
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
-        } finally {
-            setIsLoading(false);
-            // Clear the intervals
-            if (loadingTimer) clearInterval(loadingTimer);
-            if (interval) clearInterval(interval);
-            if (timer) clearInterval(timer);
-        }
-    };
-
-    const resetForm = () => {
-        setDisplayMode('form');
-        setGeneratedDocs('');
-        setActiveRepo(null);
-    };
-
-    const handleDownloadPDF = () => {
-        if (!generatedDocs || !activeRepo) return;
-        try {
-            generateFullDocumentationPDF(
-                generatedDocs, 
-                activeRepo.owner,
-                activeRepo.name
-            );
-            toast.success('PDF downloaded successfully!');
-        } catch (error) {
-            console.error('Error generating PDF:', error);
-            toast.error('Failed to download PDF.');
-        }
+        router.push(`/repo/${owner}/${repo}`);
     };
 
     if (isLoading) {
@@ -294,123 +147,13 @@ const Placeholder: React.FC = () => {
             <div className="w-full max-w-3xl mx-auto my-16 flex flex-col items-center justify-center">
                 <div className="w-full max-w-md bg-zinc-900/80 border border-zinc-800/50 rounded-xl p-8 shadow-lg mb-6 flex flex-col items-center">
                     <Loader2 className="h-12 w-12 animate-spin text-blue-500 mb-6" />
-                    <h2 className="text-xl font-semibold text-white mb-2">Generating Documentation</h2>
-                    <p className="text-zinc-400 text-center mb-4">{loadingProgress}</p>
+                    <h2 className="text-xl font-semibold text-white mb-2">Redirecting to documentation...</h2>
+                    <p className="text-zinc-400 text-center mb-4">Please wait while we prepare your request</p>
                     
                     {/* Progress bar */}
                     <div className="w-full bg-zinc-800 rounded-full h-2.5 mb-2">
                         <div className="bg-blue-600 h-2.5 rounded-full animate-pulse" style={{ width: '100%' }}></div>
                     </div>
-                    
-                    <p className="text-zinc-500 text-sm">
-                        {estimatedTime > 0 ? `Estimated time: ~${estimatedTime} seconds` : 'Finalizing...'}
-                    </p>
-                    
-                    {/* Quick tips while waiting */}
-                    <div className="mt-6 bg-zinc-800/50 border border-zinc-700/30 p-4 rounded-md text-sm">
-                        <h3 className="text-zinc-300 font-medium mb-2 flex items-center">
-                            <Zap className="h-3.5 w-3.5 mr-1.5 text-yellow-400" />
-                            Quick Tip
-                        </h3>
-                        <p className="text-zinc-400">
-                            {contextOptions.quickMode 
-                                ? "Quick Mode is enabled. For more detailed documentation, try turning it off next time." 
-                                : "Enable Quick Mode for faster results on your next generation."}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
-    if (displayMode === 'results' && generatedDocs) {
-        return (
-            <div className="w-full max-w-4xl mx-auto my-8">
-                <div className="bg-zinc-900/80 border border-zinc-800/50 rounded-xl p-6 shadow-lg mb-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <div>
-                            <h2 className="text-xl font-semibold text-white flex items-center">
-                                {activeRepo?.owner}/{activeRepo?.name}
-                            </h2>
-                            <p className="text-zinc-400 text-sm">Generated documentation</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Button 
-                                onClick={resetForm}
-                                variant="outline"
-                                className="border-zinc-700 hover:border-zinc-500 text-black">
-                                Generate Another
-                            </Button>
-                            <Button 
-                                onClick={handleDownloadPDF}
-                                variant="default"
-                                className="flex items-center gap-2"
-                            >
-                                <Download className="h-4 w-4" />
-                                Download as PDF
-                            </Button>
-                        </div>
-                    </div>
-
-                    <Tabs defaultValue="documentation" className="w-full">
-                        <TabsList className="mb-4">
-                            <TabsTrigger value="documentation">Documentation</TabsTrigger>
-                            <TabsTrigger value="settings">Settings Used</TabsTrigger>
-                        </TabsList>
-                        
-                        <TabsContent value="documentation" className="space-y-4 ">
-                            <Card className="bg-zinc-800/50 border-zinc-700 text-white"> 
-                            {/* ai response text white  */}
-                                <CardContent className="p-4 prose prose-invert prose-sm max-w-none">
-                                    {/* Format the documentation with proper line breaks */}
-                                    {generatedDocs.split('\n').map((line, index) => (
-                                        <React.Fragment key={index}>
-                                            {line}
-                                            <br />
-                                        </React.Fragment>
-                                    ))}
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-                        
-                        <TabsContent value="settings">
-                            <Card className="bg-zinc-800/50 border-zinc-700">
-                                <CardContent className="p-4">
-                                    <h3 className="text-lg font-medium text-white mb-3">Context Options Used</h3>
-                                    <ul className="space-y-2 text-zinc-300">
-                                        <li className="flex items-center">
-                                            <div className={`w-2 h-2 rounded-full mr-2 ${contextOptions.includeReadme ? 'bg-blue-500' : 'bg-zinc-600'}`}></div>
-                                            Include README: {contextOptions.includeReadme ? 'Yes' : 'No'}
-                                        </li>
-                                        <li className="flex items-center">
-                                            <div className={`w-2 h-2 rounded-full mr-2 ${contextOptions.includeSourceCode ? 'bg-emerald-500' : 'bg-zinc-600'}`}></div>
-                                            Include Source Code: {contextOptions.includeSourceCode ? 'Yes' : 'No'}
-                                        </li>
-                                        <li className="flex items-center">
-                                            <div className={`w-2 h-2 rounded-full mr-2 ${contextOptions.includeIssues ? 'bg-yellow-500' : 'bg-zinc-600'}`}></div>
-                                            Include Issues: {contextOptions.includeIssues ? 'Yes' : 'No'}
-                                        </li>
-                                        <li className="flex items-center">
-                                            <div className={`w-2 h-2 rounded-full mr-2 ${contextOptions.includePullRequests ? 'bg-purple-500' : 'bg-zinc-600'}`}></div>
-                                            Include Pull Requests: {contextOptions.includePullRequests ? 'Yes' : 'No'}
-                                        </li>
-                                        <li className="flex items-center">
-                                            <div className={`w-2 h-2 rounded-full mr-2 ${contextOptions.quickMode ? 'bg-blue-500' : 'bg-zinc-600'}`}></div>
-                                            Quick Mode: {contextOptions.quickMode ? 'Yes' : 'No'}
-                                        </li>
-                                        {contextOptions.customPrompt && (
-                                            <li className="mt-4">
-                                                <div className="mb-2 font-medium text-white">Custom Prompt:</div>
-                                                <div className="bg-zinc-700/50 p-3 rounded-md text-sm whitespace-pre-wrap">
-                                                    {contextOptions.customPrompt}
-                                                </div>
-                                            </li>
-                                        )}
-                                    </ul>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
-                    </Tabs>
                 </div>
             </div>
         );

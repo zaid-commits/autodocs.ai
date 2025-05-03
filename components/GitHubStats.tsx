@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { GitHubRepoStats, GitHubContributor, fetchRepoStats, fetchTopContributors } from '@/lib/github';
-import { Loader2, Star, GitFork, Users, GitPullRequest, GitCommit, BookOpen, Code, MessageSquare, Download, Database } from 'lucide-react';
+import { Loader2, Star, GitFork, Users, GitPullRequest, GitCommit, BookOpen, Code, MessageSquare, Download, Database, Copy, CheckCheck } from 'lucide-react';
 import { generateFullDocumentationPDF } from '@/utils/pdfGenerator';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -37,6 +37,7 @@ export default function GitHubStats({
   const [contributors, setContributors] = useState<GitHubContributor[]>([]);
   const [statsLoading, setStatsLoading] = useState(true); // Separate loading state for stats/contributors
   const [statsError, setStatsError] = useState<string | null>(null); // Separate error state for stats/contributors
+  const [copiedToClipboard, setCopiedToClipboard] = useState(false);
 
   useEffect(() => {
     async function loadStatsAndContributors() {
@@ -70,6 +71,67 @@ export default function GitHubStats({
 
     loadStatsAndContributors();
   }, [repoName]); // Only refetch when repoName changes
+
+  // Helper function to parse and enhance markdown content
+  const renderDocumentation = (content: string) => {
+    if (!content) return null;
+    
+    // Convert markdown headings to styled HTML
+    const contentWithHeadings = content.replace(
+      /^(#{1,6})\s+(.*?)$/gm, 
+      (_, level, text) => {
+        const headingLevel = level.length;
+        const fontSize = 26 - (headingLevel * 2);
+        const marginTop = headingLevel === 1 ? 8 : 6;
+        const marginBottom = headingLevel === 1 ? 6 : 4;
+        return `<h${headingLevel} class="text-${fontSize}px font-bold text-white mt-${marginTop} mb-${marginBottom}">${text}</h${headingLevel}>`;
+      }
+    );
+
+    // Convert code blocks with syntax highlighting
+    const contentWithCodeBlocks = contentWithHeadings.replace(
+      /```(\w+)?\n([\s\S]*?)```/g,
+      (_, language, code) => {
+        return `<div class="bg-zinc-900 rounded-md p-3 mt-4 mb-4 relative group">
+          <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <span class="px-2 py-1 bg-zinc-800 text-xs text-zinc-400 rounded">${language || 'code'}</span>
+          </div>
+          <pre class="text-zinc-300 overflow-auto text-sm font-mono whitespace-pre"><code>${code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</code></pre>
+        </div>`;
+      }
+    );
+
+    // Convert inline code
+    const contentWithInlineCode = contentWithCodeBlocks.replace(
+      /`([^`]+)`/g,
+      (_, code) => `<code class="bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-300 text-sm font-mono">${code}</code>`
+    );
+
+    // Convert lists
+    const contentWithLists = contentWithInlineCode.replace(
+      /^\s*[-*+]\s+(.*?)$/gm,
+      (_, item) => `<li class="ml-6 text-zinc-300 mb-1.5 relative before:absolute before:content-['•'] before:left-[-1em] before:text-blue-400">${item}</li>`
+    );
+
+    // Convert numbered lists
+    const contentWithNumberedLists = contentWithLists.replace(
+      /^\s*(\d+)\.\s+(.*?)$/gm,
+      (_, number, item) => `<li class="ml-6 text-zinc-300 mb-1.5 list-decimal">${item}</li>`
+    );
+
+    // Convert paragraphs (lines not captured by any of the above)
+    const contentWithParagraphs = contentWithNumberedLists.replace(
+      /^(?!<[h|l].*>)(.+)$/gm,
+      (_, text) => {
+        if (text.trim().length > 0 && !text.startsWith('<')) {
+          return `<p class="text-zinc-300 my-3 leading-relaxed">${text}</p>`;
+        }
+        return text;
+      }
+    );
+    
+    return <div dangerouslySetInnerHTML={{ __html: contentWithParagraphs }} />;
+  };
 
   // Display loading indicator for stats if stats are loading
   if (statsLoading) {
@@ -130,16 +192,44 @@ export default function GitHubStats({
       )}
 
       {/* Documentation Section (formerly Context Section) */}
-      <div className="bg-zinc-900/60 p-6 rounded-lg border border-zinc-800/50">
-        <h3 className="text-xl font-semibold mb-4 flex items-center">
-          <BookOpen className="h-5 w-5 mr-2 text-blue-400" />
-          Generated Documentation
-          {cacheInfo?.fromCache && (
-            <Badge className="ml-2 bg-teal-900/40 text-teal-300 border-teal-800">
-              <Database className="h-3 w-3 mr-1" /> Cached
-            </Badge>
+      <div className="bg-zinc-900/80 p-6 rounded-lg border border-zinc-800/50 shadow-lg">
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-semibold flex items-center">
+            <BookOpen className="h-5 w-5 mr-2 text-blue-400" />
+            Generated Documentation
+            {cacheInfo?.fromCache && (
+              <Badge className="ml-2 bg-teal-900/40 text-teal-300 border-teal-800">
+                <Database className="h-3 w-3 mr-1" /> Cached
+              </Badge>
+            )}
+          </h3>
+          
+          {documentation && !isLoading && !error && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1.5 border-zinc-700 hover:border-zinc-500 text-xs"
+              onClick={() => {
+                navigator.clipboard.writeText(documentation);
+                setCopiedToClipboard(true);
+                toast.success('Documentation copied to clipboard');
+                setTimeout(() => setCopiedToClipboard(false), 2000);
+              }}
+            >
+              {copiedToClipboard ? 
+                <><CheckCheck className="h-3.5 w-3.5" /> Copied</> : 
+                <><Copy className="h-3.5 w-3.5" /> Copy</>
+              }
+            </Button>
           )}
-        </h3>
+        </div>
+
+        {cacheInfo?.fromCache && (
+          <div className="bg-yellow-900/20 text-yellow-300 border border-yellow-800/30 p-3 rounded-md mb-4 text-sm flex items-center">
+            <Database className="h-4 w-4 mr-2 flex-shrink-0" />
+            Using cached documentation - the repository hasn't changed since last generation.
+          </div>
+        )}
 
         {/* Display Context Options Used */}
         <div className="flex flex-wrap gap-2 mb-4">
@@ -170,7 +260,7 @@ export default function GitHubStats({
 
         {/* Display Loading, Error, or Documentation */}
         {isLoading ? (
-          <div className="flex items-center justify-center py-6 ">
+          <div className="flex items-center justify-center py-12 ">
             <Loader2 className="h-6 w-6 animate-spin text-blue-500 mr-3" />
             <p className="text-zinc-400">Generating documentation...</p>
           </div>
@@ -180,8 +270,8 @@ export default function GitHubStats({
             <p>{error}</p>
           </div>
         ) : documentation ? (
-          <div className="bg-zinc-800/50 p-4 rounded-md overflow-auto max-h-96 font-mono text-sm whitespace-pre-wrap">
-            {documentation}
+          <div className="bg-zinc-800/40 p-5 rounded-md overflow-auto max-h-[600px] prose prose-invert prose-sm">
+            {renderDocumentation(documentation)}
           </div>
         ) : (
            <p className="text-zinc-500 text-sm italic">No documentation generated.</p>
@@ -216,7 +306,7 @@ export default function GitHubStats({
                   toast.error('Failed to download PDF.');
                 }
               }}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500"
               disabled={!documentation || isLoading || !!error}
             >
               <Download className="h-4 w-4" />
