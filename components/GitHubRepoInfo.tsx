@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Github, Star, GitFork, Code, Loader2, Share2 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { fetchRepoDetails } from '@/lib/github';
 
 interface GitHubRepoInfoProps {
   repoName: string;
@@ -29,16 +30,12 @@ export default function GitHubRepoInfo({
   const repoUrl = `https://github.com/${repoOwner}/${repoName}`;
   
   useEffect(() => {
-    async function fetchRepoDetails() {
+    async function loadRepoDetails() {
       try {
         setLoading(true);
-        const response = await fetch(`https://api.github.com/repos/${repoOwner}/${repoName}`);
         
-        if (!response.ok) {
-          throw new Error(`Failed to fetch repository details: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
+        // Use the authenticated fetchRepoDetails function instead of raw fetch
+        const data = await fetchRepoDetails(repoOwner, repoName);
         
         setRepoDetails({
           name: data.name,
@@ -59,7 +56,7 @@ export default function GitHubRepoInfo({
     }
     
     if (repoOwner && repoName) {
-      fetchRepoDetails();
+      loadRepoDetails();
     }
   }, [repoOwner, repoName, description]);
 

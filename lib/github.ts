@@ -19,6 +19,34 @@ const GITHUB_API_BASE_URL = 'https://api.github.com';
 const DEFAULT_REPO_OWNER = 'zaid-commits'; // Default GitHub username/org
 const DEFAULT_REPO_NAME = 'autodocs.ai'; // Default repository name
 
+// Get GitHub token from environment variable
+const getGitHubToken = (): string | null => {
+  if (typeof window === 'undefined') {
+    // Server-side
+    return process.env.GITHUB_API_TOKEN || null;
+  } else {
+    // Client-side
+    return process.env.NEXT_PUBLIC_GITHUB_API_TOKEN || null;
+  }
+};
+
+/**
+ * Creates headers for GitHub API requests with authentication if token is available
+ */
+const createGitHubHeaders = (): HeadersInit => {
+  const headers: HeadersInit = {
+    'Accept': 'application/vnd.github.v3+json',
+    'Content-Type': 'application/json',
+  };
+  
+  const token = getGitHubToken();
+  if (token) {
+    headers['Authorization'] = `token ${token}`;
+  }
+  
+  return headers;
+};
+
 /**
  * Fetches repository stats from GitHub API
  */
@@ -37,20 +65,28 @@ export async function fetchRepoStats(fullRepoName?: string): Promise<GitHubRepoS
     }
     
     // Get basic repo information
-    const repoResponse = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}`);
+    const repoResponse = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}`, {
+      headers: createGitHubHeaders()
+    });
     if (!repoResponse.ok) throw new Error('Failed to fetch repository data');
     const repoData = await repoResponse.json();
     
     // Get contributors count
-    const contributorsResponse = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/contributors?per_page=1&anon=false`);
+    const contributorsResponse = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/contributors?per_page=1&anon=false`, {
+      headers: createGitHubHeaders()
+    });
     const contributorsCount = parseInt(contributorsResponse.headers.get('Link')?.match(/page=(\d+)>; rel="last"/)?.[1] || '0');
     
     // Get pull requests count
-    const prResponse = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/pulls?state=all&per_page=1`);
+    const prResponse = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/pulls?state=all&per_page=1`, {
+      headers: createGitHubHeaders()
+    });
     const prCount = parseInt(prResponse.headers.get('Link')?.match(/page=(\d+)>; rel="last"/)?.[1] || '0');
     
     // Get commits count
-    const commitsResponse = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/commits?per_page=1`);
+    const commitsResponse = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/commits?per_page=1`, {
+      headers: createGitHubHeaders()
+    });
     const commitsCount = parseInt(commitsResponse.headers.get('Link')?.match(/page=(\d+)>; rel="last"/)?.[1] || '0');
     
     return {
@@ -93,7 +129,9 @@ export async function fetchTopContributors(fullRepoName?: string, limit: number 
       }
     }
     
-    const response = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/contributors?per_page=${limit}`);
+    const response = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/contributors?per_page=${limit}`, {
+      headers: createGitHubHeaders()
+    });
     if (!response.ok) throw new Error('Failed to fetch contributors');
     const contributors = await response.json();
     return contributors;
@@ -120,7 +158,9 @@ export async function fetchRepoReadme(fullRepoName?: string): Promise<string> {
       }
     }
     
-    const response = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/readme`);
+    const response = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/readme`, {
+      headers: createGitHubHeaders()
+    });
     if (!response.ok) throw new Error('Failed to fetch README');
     const readmeData = await response.json();
     
@@ -150,7 +190,9 @@ export async function fetchRepoIssues(fullRepoName?: string, limit: number = 10)
       }
     }
     
-    const response = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/issues?state=open&per_page=${limit}`);
+    const response = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/issues?state=open&per_page=${limit}`, {
+      headers: createGitHubHeaders()
+    });
     if (!response.ok) throw new Error('Failed to fetch issues');
     const issues = await response.json();
     
@@ -184,7 +226,9 @@ export async function fetchRepoPullRequests(fullRepoName?: string, limit: number
       }
     }
     
-    const response = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/pulls?state=open&per_page=${limit}`);
+    const response = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}/pulls?state=open&per_page=${limit}`, {
+      headers: createGitHubHeaders()
+    });
     if (!response.ok) throw new Error('Failed to fetch pull requests');
     const prs = await response.json();
     
@@ -198,5 +242,25 @@ export async function fetchRepoPullRequests(fullRepoName?: string, limit: number
   } catch (error) {
     console.error('Error fetching pull requests:', error);
     return 'Pull requests not available';
+  }
+}
+
+/**
+ * Fetches repository details (used by GitHubRepoInfo component)
+ */
+export async function fetchRepoDetails(repoOwner: string, repoName: string) {
+  try {
+    const response = await fetch(`${GITHUB_API_BASE_URL}/repos/${repoOwner}/${repoName}`, {
+      headers: createGitHubHeaders()
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch repository details: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching repository details:', error);
+    throw error;
   }
 }

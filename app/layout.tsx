@@ -36,7 +36,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <head>
-          <link rel="icon" href="/logo.png" sizes="any" />
+          <link rel="shortcut icon" href="/logo.png" type="image/x-icon" />
           </head>
 
 
