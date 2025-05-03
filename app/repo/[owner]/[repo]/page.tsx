@@ -153,7 +153,7 @@ const RepoPage = () => {
                     <Button
                         variant="outline"
                         onClick={goBackToGenerator}
-                        className="border-zinc-700 hover:border-zinc-500"
+                        className="border-zinc-700 hover:border-zinc-500 text-black bg-zinc-200 hover:bg-zinc-300 cursor-pointer"
                     >
                         Back to Generator
                     </Button>
@@ -216,7 +216,7 @@ const RepoPage = () => {
                                     size="sm"
                                     disabled={isRefreshing || isLoadingDocs}
                                     onClick={handleRefresh}
-                                    className="flex items-center gap-2 border-zinc-700 hover:border-zinc-500"
+                                    className="flex items-center gap-2 border-zinc-700 hover:border-zinc-500 text-black bg-zinc-200 hover:bg-zinc-300 cursor-pointer"
                                 >
                                     {isRefreshing ? (
                                         <Loader2 className="h-4 w-4 animate-spin" />

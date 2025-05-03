@@ -131,3 +131,8 @@
 body{
   /* font-weight: 500; */
 }
+
+Button{
+  cursor: pointer;
+  ;
+}

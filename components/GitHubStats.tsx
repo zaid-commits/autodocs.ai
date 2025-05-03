@@ -208,7 +208,7 @@ export default function GitHubStats({
             <Button
               variant="outline"
               size="sm"
-              className="flex items-center gap-1.5 border-zinc-700 hover:border-zinc-500 text-xs"
+              className="flex items-center gap-1.5 border-zinc-700 hover:border-zinc-500 text-xs text-black *:hover:text-zinc-200 cursor-pointer"
               onClick={() => {
                 navigator.clipboard.writeText(documentation);
                 setCopiedToClipboard(true);
@@ -218,7 +218,7 @@ export default function GitHubStats({
             >
               {copiedToClipboard ? 
                 <><CheckCheck className="h-3.5 w-3.5" /> Copied</> : 
-                <><Copy className="h-3.5 w-3.5" /> Copy</>
+                <><Copy className="h-3.5 w-3.5 " /> Copy</>
               }
             </Button>
           )}
@@ -279,7 +279,43 @@ export default function GitHubStats({
 
         {/* PDF Download Button */}
         {documentation && !isLoading && !error && (
-          <div className="flex justify-end mt-4">
+          <div className="flex justify-end gap-3 mt-4">
+            <Button
+              onClick={() => {
+                if (!repoName) {
+                  toast.error('Repository information is missing.');
+                  return;
+                }
+                
+                try {
+                  // Split the repoName to get owner and repo parts
+                  const [owner, repo] = repoName.split('/');
+                  if (!owner || !repo) {
+                    toast.error('Invalid repository format.');
+                    return;
+                  }
+                  
+                  // Import the function from pdfGenerator.ts
+                  import('@/utils/pdfGenerator').then(module => {
+                    module.downloadMarkdownFile(documentation, owner, repo);
+                    toast.success('Markdown file downloaded successfully!');
+                  }).catch(error => {
+                    console.error('Error downloading markdown:', error);
+                    toast.error('Failed to download markdown file.');
+                  });
+                } catch (error) {
+                  console.error('Error generating markdown file:', error);
+                  toast.error('Failed to download markdown file.');
+                }
+              }}
+              variant="outline"
+              className="flex items-center gap-2 border-zinc-700 hover:border-zinc-500 text-black "
+              disabled={!documentation || isLoading || !!error}
+            >
+              <Download className="h-4 w-4" />
+              Download Markdown
+            </Button>
+            
             <Button
               onClick={() => {
                 if (!repoName) {

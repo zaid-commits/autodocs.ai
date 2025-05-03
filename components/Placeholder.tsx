@@ -246,10 +246,12 @@ const Placeholder: React.FC = () => {
                                 id="customPrompt"
                                 value={contextOptions.customPrompt}
                                 onChange={handleCustomPromptChange}
-                                placeholder="Enter custom instructions for the documentation generation..."
+                                placeholder="Customize your documentation generation with specific instructions. Examples:
+- Produce documentation targeted at new contributors"
                                 className="w-full mt-2 p-2 border border-zinc-700 rounded-lg bg-zinc-800/50 text-white focus:outline-none"
                                 rows={4}
                             />
+                            <p className="text-xs text-zinc-500 mt-1 italic">Pro tip: Be specific about your target audience and what aspects of the code you want to emphasize.</p>
                         </div>
                     </div>
                 </div>

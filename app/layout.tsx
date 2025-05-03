@@ -35,12 +35,16 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
+        <head>
+          <link rel="icon" href="/logo.png" sizes="any" />
+          </head>
+
+
         <body
           className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} antialiased`}
         >
-      
           {children}
-          <Toaster position="top-right" theme="dark" closeButton />
+          <Toaster position="bottom-right" theme="dark" closeButton />
         </body>
       </html>
     </ClerkProvider>

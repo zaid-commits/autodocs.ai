@@ -170,3 +170,29 @@ export const generateFullDocumentationPDF = (
   // Generate the PDF with the combined text
   generateDocumentationPDF(fullDocumentation, repoOwner, repoName);
 };
+
+// Function to download documentation as markdown file
+export const downloadMarkdownFile = (
+  documentationText: string,
+  repoOwner: string,
+  repoName: string
+): void => {
+  // Create a Blob with the markdown content
+  const blob = new Blob([documentationText], { type: 'text/markdown' });
+  
+  // Create a URL for the Blob
+  const url = URL.createObjectURL(blob);
+  
+  // Create a temporary anchor element
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${repoOwner}-${repoName}-documentation.md`;
+  
+  // Trigger the download
+  document.body.appendChild(a);
+  a.click();
+  
+  // Clean up
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
